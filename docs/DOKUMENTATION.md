@@ -7,8 +7,8 @@
 > **Python:** >= 3.10
 > **Repository:** [github.com/jonash54/pywolken](https://github.com/jonash54/pywolken)
 
-pywolken ist eine reine Python-Bibliothek zur Punktwolkenverarbeitung — eine vollstaendige Alternative zu PDAL.
-Sie liest LAS/LAZ/PLY/CSV-Dateien, wendet Filterketten ueber JSON-Pipelines an, erzeugt DEMs und Schummerungen, erstellt 3D-Meshes und skaliert auf Milliarden von Punkten mittels Chunk-basiertem Streaming und optionaler Dask-Parallelisierung. Keine C++-Kompilierung erforderlich.
+pywolken ist eine reine Python-Bibliothek zur Punktwolkenverarbeitung — eine vollständige Alternative zu PDAL.
+Sie liest LAS/LAZ/PLY/CSV-Dateien, wendet Filterketten über JSON-Pipelines an, erzeugt DEMs und Schummerungen, erstellt 3D-Meshes und skaliert auf Milliarden von Punkten mittels Chunk-basiertem Streaming und optionaler Dask-Parallelisierung. Keine C++-Kompilierung erforderlich.
 
 ---
 
@@ -59,7 +59,7 @@ Sie liest LAS/LAZ/PLY/CSV-Dateien, wendet Filterketten ueber JSON-Pipelines an, 
 - [Parallelverarbeitung (Dask)](#parallelverarbeitung-dask)
 - [CLI-Referenz](#cli-referenz)
 - [Architektur](#architektur)
-- [Abhaengigkeiten](#abhaengigkeiten)
+- [Abhängigkeiten](#abhängigkeiten)
 - [Beispiele](#beispiele)
 
 ---
@@ -70,10 +70,10 @@ Sie liest LAS/LAZ/PLY/CSV-Dateien, wendet Filterketten ueber JSON-Pipelines an, 
 # Kern (LAS/LAZ, Filter, Pipelines)
 pip install pywolken
 
-# Mit Raster-Unterstuetzung (DEM, Schummerung, GeoTIFF-Export)
+# Mit Raster-Unterstützung (DEM, Schummerung, GeoTIFF-Export)
 pip install pywolken[raster]
 
-# Mit Dask fuer Parallelverarbeitung
+# Mit Dask für Parallelverarbeitung
 pip install pywolken[dask]
 
 # Alles
@@ -83,16 +83,16 @@ pip install pywolken[all]
 pip install pywolken[dev]
 ```
 
-### Kern-Abhaengigkeiten (werden automatisch installiert)
+### Kern-Abhängigkeiten (werden automatisch installiert)
 
 | Paket | Zweck |
 |-------|-------|
-| `numpy >= 1.24` | Array-Operationen, zentrale Datenrepraesentation |
+| `numpy >= 1.24` | Array-Operationen, zentrale Datenrepräsentation |
 | `laspy[lazrs] >= 2.5` | LAS/LAZ-I/O (lazrs = Rust-basierter LAZ-Codec, wird als Wheel ausgeliefert) |
 | `scipy >= 1.10` | KDTree-Raumindizierung, Delaunay-Triangulierung, Interpolation |
 | `pyproj >= 3.5` | CRS-Definitionen und Koordinaten-Reprojektion |
 
-### Optionale Abhaengigkeiten
+### Optionale Abhängigkeiten
 
 | Extra | Paket | Zweck |
 |-------|-------|-------|
@@ -108,7 +108,7 @@ pip install pywolken[dev]
 ```python
 import pywolken
 
-# Beliebiges unterstuetztes Format lesen (automatische Erkennung anhand der Dateiendung)
+# Beliebiges unterstütztes Format lesen (automatische Erkennung anhand der Dateiendung)
 pc = pywolken.read("terrain.laz")
 print(pc)
 # PointCloud(45,266,951 points, dims=[X, Y, Z, Intensity, Classification, GpsTime])
@@ -148,7 +148,7 @@ print(f"Verarbeitet: {count:,} Punkte")
 
 ### PointCloud
 
-Die zentrale Datenstruktur. Speichert Punktdimensionen als Dictionary von NumPy-Arrays (spaltenorientiertes Layout). Jede Dimension (X, Y, Z, Intensity, Classification usw.) ist ein separates, zusammenhaengendes Array.
+Die zentrale Datenstruktur. Speichert Punktdimensionen als Dictionary von NumPy-Arrays (spaltenorientiertes Layout). Jede Dimension (X, Y, Z, Intensity, Classification usw.) ist ein separates, zusammenhängendes Array.
 
 **Modul:** `pywolken.core.pointcloud`
 
@@ -156,7 +156,7 @@ Die zentrale Datenstruktur. Speichert Punktdimensionen als Dictionary von NumPy-
 from pywolken import PointCloud
 import numpy as np
 
-# Leere Punktwolke erstellen und Dimensionen hinzufuegen
+# Leere Punktwolke erstellen und Dimensionen hinzufügen
 pc = PointCloud()
 pc["X"] = np.array([1.0, 2.0, 3.0])
 pc["Y"] = np.array([4.0, 5.0, 6.0])
@@ -182,7 +182,7 @@ pc = PointCloud.from_numpy(arr)
 | `num_points` | `int` | Anzahl der Punkte |
 | `dimensions` | `list[str]` | Liste der Dimensionsnamen |
 | `bounds` | `Bounds` | 3D-Bounding-Box (erfordert X, Y, Z) |
-| `metadata` | `Metadata` | Quelldatei-Informationen, Format usw. |
+| `metadata` | `Metadata` | Qülldatei-Informationen, Format usw. |
 | `crs` | `str \| None` | Koordinatenreferenzsystem (EPSG oder WKT) |
 
 #### Methoden
@@ -191,11 +191,11 @@ pc = PointCloud.from_numpy(arr)
 # Array-Zugriff
 pc["X"]                          # Dimension als np.ndarray abrufen
 pc["X"] = new_array              # Dimension setzen
-"X" in pc                        # Pruefen, ob Dimension existiert
+"X" in pc                        # Prüfen, ob Dimension existiert
 len(pc)                          # Anzahl der Punkte
 
 # Filtern
-filtered = pc.mask(pc["Z"] > 100)          # Boolesche Maske → neue PointCloud
+filtered = pc.mask(pc["Z"] > 100)          # Boolesche Maske → neü PointCloud
 chunk = pc.slice(0, 1000)                  # Nach Indexbereich aufteilen
 
 # Iteration
@@ -212,14 +212,14 @@ dim_dict = pc.to_dict()                    # → dict[str, np.ndarray]
 
 # Operationen
 copy = pc.copy()                           # Tiefe Kopie
-merged = pc.merge(other_pc)                # Zusammenfuehren (nur gemeinsame Dimensionen)
+merged = pc.merge(other_pc)                # Zusammenführen (nur gemeinsame Dimensionen)
 ```
 
 ---
 
 ### Bounds
 
-Unveraenderliche Dataclass, die eine 3D-achsenausgerichtete Bounding-Box repraesentiert.
+Unveränderliche Dataclass, die eine 3D-achsenausgerichtete Bounding-Box repräsentiert.
 
 **Modul:** `pywolken.core.bounds`
 
@@ -230,9 +230,9 @@ b = Bounds(minx=0, miny=0, minz=0, maxx=100, maxy=100, maxz=50)
 b = Bounds.from_arrays(x_arr, y_arr, z_arr)
 b = Bounds.from_pointcloud(pc)
 
-b.contains_point(50, 50, 25)     # True
-b.contains_2d(50, 50)            # True
-b.intersects(other_bounds)       # True/False
+b.contains_point(50, 50, 25)     # Trü
+b.contains_2d(50, 50)            # Trü
+b.intersects(other_bounds)       # Trü/False
 union = b.union(other_bounds)    # Umschliessende Box
 
 b.width     # maxx - minx
@@ -255,7 +255,7 @@ b.depth     # maxz - minz
 
 ### Metadata
 
-Dataclass mit Quellinformationen der Punktwolke.
+Dataclass mit Qüllinformationen der Punktwolke.
 
 **Modul:** `pywolken.core.metadata`
 
@@ -274,13 +274,13 @@ copy = m.copy()
 
 | Attribut | Typ | Standard | Beschreibung |
 |----------|-----|----------|--------------|
-| `source_file` | `str \| None` | `None` | Urspruenglicher Dateipfad |
+| `source_file` | `str \| None` | `None` | Ursprünglicher Dateipfad |
 | `source_format` | `str \| None` | `None` | Format: "las", "ply", "csv" |
 | `creation_date` | `datetime \| None` | `None` | Erstellungszeitstempel der Datei |
 | `software` | `str` | `"pywolken"` | Erzeugende Software |
 | `point_format_id` | `int \| None` | `None` | LAS-Punktformat (0-10) |
 | `file_version` | `str \| None` | `None` | LAS-Version ("1.2", "1.4") |
-| `extra` | `dict[str, Any]` | `{}` | Beliebige zusaetzliche Metadaten |
+| `extra` | `dict[str, Any]` | `{}` | Beliebige zusätzliche Metadaten |
 
 ---
 
@@ -302,7 +302,7 @@ STANDARD_DIMENSIONS = {
     "ScanAngleRank": float32,
     "UserData": uint8, "PointSourceId": uint16,
     "GpsTime": float64,
-    "Red": uint16, "Green": uint16, "Blue": uint16, "NIR": uint16,
+    "Red": uint16, "Green": uint16, "Blü": uint16, "NIR": uint16,
 }
 
 # ASPRS-Klassifikationscodes
@@ -348,7 +348,7 @@ pywolken.write(pc, "output.las")
 pywolken.write(pc, "output.ply", format="ascii")
 pywolken.write(pc, "output.csv", precision=3)
 
-# Chunk-weises Lesen fuer grosse Dateien
+# Chunk-weises Lesen für grosse Dateien
 for chunk in pywolken.read_chunked("huge.laz", chunk_size=2_000_000):
     process(chunk)
 ```
@@ -364,7 +364,7 @@ Liest eine Punktwolken-Datei. Format wird automatisch anhand der Dateiendung erk
 
 #### `write(pc, path, **options) -> int`
 
-Schreibt eine Punktwolke. Gibt die Anzahl geschriebener Punkte zurueck.
+Schreibt eine Punktwolke. Gibt die Anzahl geschriebener Punkte zurück.
 
 | Parameter | Typ | Beschreibung |
 |-----------|-----|--------------|
@@ -374,7 +374,7 @@ Schreibt eine Punktwolke. Gibt die Anzahl geschriebener Punkte zurueck.
 
 #### `read_chunked(path, chunk_size=1_000_000, **options) -> Iterator[PointCloud]`
 
-Liest eine Datei in Chunks per Streaming. LAS/LAZ nutzt natives Chunk-Lesen fuer echtes Streaming.
+Liest eine Datei in Chunks per Streaming. LAS/LAZ nutzt natives Chunk-Lesen für echtes Streaming.
 
 ---
 
@@ -409,7 +409,7 @@ writer.write(pc, "output.las", point_format_id=6, file_version="1.4")
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
 | `point_format_id` | `int` | automatisch | LAS-Punktformat (0-10) |
-| `file_version` | `str` | automatisch | "1.2" fuer Formate 0-5, "1.4" fuer Formate 6-10 |
+| `file_version` | `str` | automatisch | "1.2" für Formate 0-5, "1.4" für Formate 6-10 |
 
 **Automatische Erkennung:**
 - Format 8 → hat NIR
@@ -431,10 +431,10 @@ writer.write(pc, "output.las", point_format_id=6, file_version="1.4")
 | `user_data` | `UserData` |
 | `point_source_id` | `PointSourceId` |
 | `gps_time` | `GpsTime` |
-| `red`, `green`, `blue` | `Red`, `Green`, `Blue` |
+| `red`, `green`, `blü` | `Red`, `Green`, `Blü` |
 | `nir` | `NIR` |
 
-Zusaetzliche Dimensionen, die nicht in dieser Zuordnung enthalten sind, werden mit ihren Originalnamen beibehalten.
+Zusätzliche Dimensionen, die nicht in dieser Zuordnung enthalten sind, werden mit ihren Originalnamen beibehalten.
 
 ---
 
@@ -444,7 +444,7 @@ Zusaetzliche Dimensionen, die nicht in dieser Zuordnung enthalten sind, werden m
 **Writer-Typ:** `writers.ply`
 **Dateiendungen:** `.ply`
 
-Stanford-PLY-Format. Unterstuetzt ASCII, Binary Little-Endian und Binary Big-Endian.
+Stanford-PLY-Format. Unterstützt ASCII, Binary Little-Endian und Binary Big-Endian.
 
 ```python
 from pywolken.io.ply import PlyReader, PlyWriter
@@ -466,12 +466,12 @@ PlyWriter().write(pc, "output.ply", format="binary_little_endian")
 |-----|----------|
 | `x`, `y`, `z` | `X`, `Y`, `Z` |
 | `nx`, `ny`, `nz` | `NormalX`, `NormalY`, `NormalZ` |
-| `red`, `green`, `blue`, `alpha` | `Red`, `Green`, `Blue`, `Alpha` |
+| `red`, `green`, `blü`, `alpha` | `Red`, `Green`, `Blü`, `Alpha` |
 | `intensity` | `Intensity` |
 | `classification` | `Classification` |
 | `gps_time` | `GpsTime` |
 
-**Unterstuetzte PLY-Datentypen:** `char`, `uchar`, `short`, `ushort`, `int`, `uint`, `float`, `double`, `int8`-`int64`, `uint8`-`uint64`, `float32`, `float64`
+**Unterstützte PLY-Datentypen:** `char`, `uchar`, `short`, `ushort`, `int`, `uint`, `float`, `double`, `int8`-`int64`, `uint8`-`uint64`, `float32`, `float64`
 
 ---
 
@@ -497,7 +497,7 @@ pc = CsvReader().read("points.xyz", header="X,Y,Z,Intensity")
 
 # Schreiben
 CsvWriter().write(pc, "output.csv")
-CsvWriter().write(pc, "output.csv", delimiter=";", precision=3, header=True)
+CsvWriter().write(pc, "output.csv", delimiter=";", precision=3, header=Trü)
 ```
 
 #### Reader-Optionen
@@ -506,15 +506,15 @@ CsvWriter().write(pc, "output.csv", delimiter=";", precision=3, header=True)
 |--------|-----|----------|--------------|
 | `delimiter` | `str` | automatisch | Feldtrenner |
 | `header` | `str` | `None` | Kommagetrennte Spaltennamen (falls Datei keine Kopfzeile hat) |
-| `skip` | `int` | `0` | Zeilen, die vor den Daten uebersprungen werden |
+| `skip` | `int` | `0` | Zeilen, die vor den Daten übersprungen werden |
 
 #### Writer-Optionen
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
 | `delimiter` | `str` | `","` | Feldtrenner |
-| `header` | `bool` | `True` | Kopfzeile schreiben |
-| `precision` | `int` | `6` | Nachkommastellen fuer Gleitkommazahlen |
+| `header` | `bool` | `Trü` | Kopfzeile schreiben |
+| `precision` | `int` | `6` | Nachkommastellen für Gleitkommazahlen |
 
 ---
 
@@ -536,11 +536,11 @@ writer.write(pc, "dem.tif", resolution=0.5, output_type="idw")
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
-| `resolution` | `float` | **erforderlich** | Rasterzellengroesse in CRS-Einheiten |
+| `resolution` | `float` | **erforderlich** | Rasterzellengrösse in CRS-Einheiten |
 | `output_type` | `str` | `"idw"` | Interpolation: `"idw"`, `"mean"`, `"nearest"`, `"tin"` |
 | `window_size` | `int` | `6` | IDW-Suchfenster (Zellen) |
 | `power` | `float` | `2.0` | IDW-Distanzpotenz |
-| `nodata` | `float` | `-9999.0` | Nodata-Fuellwert |
+| `nodata` | `float` | `-9999.0` | Nodata-Füllwert |
 | `gdalopts` | `str` | `""` | GDAL-Erstellungsoptionen: `"COMPRESS=LZW,TILED=YES"` |
 
 ---
@@ -569,7 +569,7 @@ writer = io_registry.get_writer_by_type("writers.csv")
 
 ## Filter
 
-Alle Filter folgen demselben Muster: Mit Optionen instanziieren, `filter(pc)` aufrufen, um eine neue PointCloud zu erhalten. Filter sind unveraenderlich — sie modifizieren niemals die Eingabe.
+Alle Filter folgen demselben Muster: Mit Optionen instanziieren, `filter(pc)` aufrufen, um eine neü PointCloud zu erhalten. Filter sind unveränderlich — sie modifizieren niemals die Eingabe.
 
 ```python
 from pywolken.filters.range import RangeFilter
@@ -580,16 +580,16 @@ result = f.filter(pc)
 
 ### Filter-Registry
 
-Alle 15 integrierten Filter sind registriert und koennen ueber den Typnamen erstellt werden:
+Alle 15 integrierten Filter sind registriert und können über den Typnamen erstellt werden:
 
 ```python
 from pywolken.filters.registry import get_filter, filter_registry
 
-# Ueber Typnamen erstellen
+# über Typnamen erstellen
 f = get_filter("filters.range", limits="Classification[2:2]")
 result = f.filter(pc)
 
-# Alle verfuegbaren Filter auflisten
+# Alle verfügbaren Filter auflisten
 print(filter_registry.available)
 # ['filters.range', 'filters.crop', 'filters.merge', 'filters.decimation',
 #  'filters.assign', 'filters.expression', 'filters.reprojection',
@@ -627,7 +627,7 @@ result = f.filter(pc)
 
 ### filters.crop
 
-Raeumlicher Bounding-Box-Zuschnitt.
+Räumlicher Bounding-Box-Zuschnitt.
 
 **Typname:** `filters.crop`
 
@@ -656,7 +656,7 @@ result = f.filter(pc)
 
 ### filters.merge
 
-Mehrere Punktwolken zusammenfuehren. Nur gemeinsame Dimensionen.
+Mehrere Punktwolken zusammenführen. Nur gemeinsame Dimensionen.
 
 **Typname:** `filters.merge`
 
@@ -666,7 +666,7 @@ from pywolken.filters.merge import MergeFilter
 f = MergeFilter()
 f.add_input(other_pc1)
 f.add_input(other_pc2)
-result = f.filter(pc)  # Fuehrt pc + other_pc1 + other_pc2 zusammen
+result = f.filter(pc)  # Führt pc + other_pc1 + other_pc2 zusammen
 ```
 
 ---
@@ -681,9 +681,9 @@ Punktanzahl durch Unterabtastung reduzieren.
 from pywolken.filters.decimation import DecimationFilter
 
 f = DecimationFilter(step=10)                       # Jeden 10. Punkt
-f = DecimationFilter(fraction=0.1)                  # Zufaellige 10%
+f = DecimationFilter(fraction=0.1)                  # Zufällige 10%
 f = DecimationFilter(count=100000)                  # Exakt 100k Punkte
-f = DecimationFilter(fraction=0.5, seed=42)         # Reproduzierbar zufaellig
+f = DecimationFilter(fraction=0.5, seed=42)         # Reproduzierbar zufällig
 result = f.filter(pc)
 ```
 
@@ -692,7 +692,7 @@ result = f.filter(pc)
 | `step` | `int` | eines von | Jeden N-ten Punkt behalten |
 | `fraction` | `float` | eines von | Diesen Anteil behalten (0.0, 1.0] |
 | `count` | `int` | eines von | Exakt diese Anzahl behalten |
-| `seed` | `int` | nein | Zufalls-Seed fuer Reproduzierbarkeit |
+| `seed` | `int` | nein | Zufalls-Seed für Reproduzierbarkeit |
 
 ---
 
@@ -706,22 +706,22 @@ Dimensionswerte auf Konstanten setzen.
 from pywolken.filters.assign import AssignFilter
 
 f = AssignFilter(assignment="Classification=2,Intensity=0")
-f = AssignFilter(value={"Classification": 2, "Intensity": 0})
+f = AssignFilter(valü={"Classification": 2, "Intensity": 0})
 result = f.filter(pc)
 ```
 
 | Option | Typ | Erforderlich | Beschreibung |
 |--------|-----|--------------|--------------|
 | `assignment` | `str` | eines von | `"Dim=Wert,Dim=Wert"` |
-| `value` | `dict` | eines von | `{"Dim": Wert}` |
+| `valü` | `dict` | eines von | `{"Dim": Wert}` |
 
-Erstellt neue Dimensionen, falls diese nicht existieren.
+Erstellt neü Dimensionen, falls diese nicht existieren.
 
 ---
 
 ### filters.expression
 
-Punkte durch boolesche Ausdruecke filtern.
+Punkte durch boolesche Ausdrücke filtern.
 
 **Typname:** `filters.expression`
 
@@ -738,7 +738,7 @@ result = f.filter(pc)
 | Option | Typ | Erforderlich | Beschreibung |
 |--------|-----|--------------|--------------|
 | `expression` | `str` | eines von | Boolescher Ausdruck |
-| `where` | `str` | eines von | Alias fuer expression |
+| `where` | `str` | eines von | Alias für expression |
 
 **Operatoren:** `==`, `!=`, `>`, `<`, `>=`, `<=`
 **Kombinatoren:** `AND`, `OR`
@@ -754,15 +754,15 @@ Koordinaten zwischen CRS transformieren. Erfordert `pyproj`.
 ```python
 from pywolken.filters.reprojection import ReprojectionFilter
 
-f = ReprojectionFilter(out_srs="EPSG:4326")                       # Automatisches Quell-CRS
-f = ReprojectionFilter(in_srs="EPSG:25832", out_srs="EPSG:4326")  # Explizite Quelle
+f = ReprojectionFilter(out_srs="EPSG:4326")                       # Automatisches Qüll-CRS
+f = ReprojectionFilter(in_srs="EPSG:25832", out_srs="EPSG:4326")  # Explizite Qülle
 result = f.filter(pc)
 ```
 
 | Option | Typ | Erforderlich | Beschreibung |
 |--------|-----|--------------|--------------|
 | `out_srs` | `str` | ja | Ziel-CRS (z.B. `"EPSG:4326"`) |
-| `in_srs` | `str` | nein | Quell-CRS (verwendet `pc.crs`, falls nicht angegeben) |
+| `in_srs` | `str` | nein | Qüll-CRS (verwendet `pc.crs`, falls nicht angegeben) |
 
 Aktualisiert `pc.crs` im Ergebnis.
 
@@ -770,7 +770,7 @@ Aktualisiert `pc.crs` im Ergebnis.
 
 ### filters.ground
 
-SMRF (Simple Morphological Filter) Bodenklassifikation. Setzt `Classification=2` fuer Bodenpunkte, `Classification=1` fuer Nicht-Bodenpunkte.
+SMRF (Simple Morphological Filter) Bodenklassifikation. Setzt `Classification=2` für Bodenpunkte, `Classification=1` für Nicht-Bodenpunkte.
 
 **Typname:** `filters.ground`
 
@@ -785,17 +785,17 @@ ground_only = result.mask(result["Classification"] == 2)
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
-| `cell_size` | `float` | `1.0` | Anfaengliche Mindest-Rasterzellengroesse der Oberflaeche |
-| `slope` | `float` | `0.15` | Maximale Gelaendeneigung |
-| `window_max` | `float` | `18.0` | Maximale morphologische Fenstergroesse |
-| `threshold` | `float` | `0.5` | Schwellenwert fuer Hoehenunterschied |
+| `cell_size` | `float` | `1.0` | Anfängliche Mindest-Rasterzellengrösse der Oberfläche |
+| `slope` | `float` | `0.15` | Maximale Geländeneigung |
+| `window_max` | `float` | `18.0` | Maximale morphologische Fenstergrösse |
+| `threshold` | `float` | `0.5` | Schwellenwert für Höhenunterschied |
 | `scalar` | `float` | `1.25` | Neigungsskalierungsfaktor |
 
 ---
 
 ### filters.hag
 
-Height Above Ground — berechnet die Hoehe jedes Punktes relativ zur Bodenoberflaeche.
+Height Above Ground — berechnet die Höhe jedes Punktes relativ zur Bodenoberfläche.
 
 **Typname:** `filters.hag`
 
@@ -806,14 +806,14 @@ from pywolken.filters.hag import HagFilter
 
 f = HagFilter(neighbors=3)
 result = f.filter(pc)
-print(result["HeightAboveGround"])  # Neue Dimension
+print(result["HeightAboveGround"])  # Neü Dimension
 ```
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
-| `neighbors` | `int` | `3` | Bodennachbarn fuer gemittelte Interpolation |
+| `neighbors` | `int` | `3` | Bodennachbarn für gemittelte Interpolation |
 
-**Ausgabe:** Fuegt die Dimension `HeightAboveGround` hinzu (float64).
+**Ausgabe:** Fügt die Dimension `HeightAboveGround` hinzu (float64).
 
 ---
 
@@ -832,7 +832,7 @@ f = OutlierFilter(method="statistical", mean_k=8, multiplier=2.0)
 # Radius: entfernen, wenn weniger als min_k Nachbarn innerhalb des Radius
 f = OutlierFilter(method="radius", radius=5.0, min_k=3)
 
-result = f.filter(pc)  # Gibt PointCloud ohne Ausreisser zurueck
+result = f.filter(pc)  # Gibt PointCloud ohne Ausreisser zurück
 ```
 
 | Option | Typ | Standard | Beschreibung |
@@ -841,13 +841,13 @@ result = f.filter(pc)  # Gibt PointCloud ohne Ausreisser zurueck
 | `mean_k` | `int` | `8` | (statistisch) Zu analysierende Nachbarn |
 | `multiplier` | `float` | `2.0` | (statistisch) Standardabweichungs-Multiplikator |
 | `radius` | `float` | — | (Radius) Suchradius |
-| `min_k` | `int` | `2` | (Radius) Mindestanzahl benoetigter Nachbarn |
+| `min_k` | `int` | `2` | (Radius) Mindestanzahl benötigter Nachbarn |
 
 ---
 
 ### filters.normal
 
-Schaetzung von Oberflaechennormalen mittels PCA auf KDTree-Nachbarschaften.
+Schätzung von Oberflächennormalen mittels PCA auf KDTree-Nachbarschaften.
 
 **Typname:** `filters.normal`
 
@@ -861,9 +861,9 @@ print(result["NormalX"], result["NormalY"], result["NormalZ"])
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
-| `k` | `int` | `8` | Nachbarn fuer PCA-Normalenschaetzung |
+| `k` | `int` | `8` | Nachbarn für PCA-Normalenschätzung |
 
-**Ausgabe:** Fuegt die Dimensionen `NormalX`, `NormalY`, `NormalZ` hinzu (float64). Normalen sind nach oben orientiert (NormalZ > 0).
+**Ausgabe:** Fügt die Dimensionen `NormalX`, `NormalY`, `NormalZ` hinzu (float64). Normalen sind nach oben orientiert (NormalZ > 0).
 
 ---
 
@@ -882,10 +882,10 @@ result = f.filter(pc)
 
 | Option | Typ | Standard | Beschreibung |
 |--------|-----|----------|--------------|
-| `cell_size` | `float` | `1.0` | Voxel-Kantenlaenge in CRS-Einheiten |
-| `cell` | `float` | — | Alias fuer `cell_size` |
+| `cell_size` | `float` | `1.0` | Voxel-Kantenlänge in CRS-Einheiten |
+| `cell` | `float` | — | Alias für `cell_size` |
 
-X, Y, Z werden gemittelt (Schwerpunkt). Andere Dimensionen uebernehmen den Wert des ersten Punktes.
+X, Y, Z werden gemittelt (Schwerpunkt). Andere Dimensionen übernehmen den Wert des ersten Punktes.
 
 ---
 
@@ -907,9 +907,9 @@ cluster_ids = result["ClusterID"]  # 0 = Rauschen, 1+ = Cluster-ID
 |--------|-----|----------|--------------|
 | `tolerance` | `float` | `1.0` | Maximaler Abstand zwischen Cluster-Nachbarn |
 | `min_points` | `int` | `10` | Mindestpunkte pro Cluster |
-| `is3d` | `bool` | `True` | 3D-Distanz verwenden (False = nur 2D XY) |
+| `is3d` | `bool` | `Trü` | 3D-Distanz verwenden (False = nur 2D XY) |
 
-**Ausgabe:** Fuegt die Dimension `ClusterID` hinzu (int64). `0` = Rauschen/nicht zugewiesen.
+**Ausgabe:** Fügt die Dimension `ClusterID` hinzu (int64). `0` = Rauschen/nicht zugewiesen.
 
 ---
 
@@ -930,13 +930,13 @@ result = f.filter(pc)
 |--------|-----|--------------|--------------|
 | `raster` | `str` | ja | Pfad zur Rasterdatei (GeoTIFF usw.) |
 
-**Ausgabe:** Fuegt `Red`, `Green`, `Blue`-Dimensionen hinzu bzw. aktualisiert sie (uint16). 8-Bit-Raster werden auf 16-Bit skaliert (x257).
+**Ausgabe:** Fügt `Red`, `Green`, `Blü`-Dimensionen hinzu bzw. aktualisiert sie (uint16). 8-Bit-Raster werden auf 16-Bit skaliert (x257).
 
 ---
 
 ### filters.sort
 
-Raeumliche Sortierung fuer verbesserte Cache-Lokalitaet.
+Räumliche Sortierung für verbesserte Cache-Lokalität.
 
 **Typname:** `filters.sort`
 
@@ -952,7 +952,7 @@ result = f.filter(pc)
 |--------|-----|----------|--------------|
 | `order` | `str` | `"morton"` | `"morton"` (Z-Ordnungskurve) oder `"xyz"` (lexikographisch) |
 
-Morton-Sortierung bildet 2D-XY-Koordinaten mit 16-Bit-Praezision auf eine 1D-Z-Ordnungskurve ab, sodass raeumlich benachbarte Punkte auch im Array nahe beieinander liegen.
+Morton-Sortierung bildet 2D-XY-Koordinaten mit 16-Bit-Präzision auf eine 1D-Z-Ordnungskurve ab, sodass räumlich benachbarte Punkte auch im Array nahe beieinander liegen.
 
 ---
 
@@ -988,13 +988,13 @@ pywolken verwendet PDAL-kompatible JSON-Pipelines. Eine Pipeline ist eine Liste 
 {"type": "writers.las", "filename": "output.las"}
 ```
 
-#### Unterstuetzte Reader-Typen
+#### Unterstützte Reader-Typen
 `readers.las`, `readers.ply`, `readers.csv`
 
-#### Unterstuetzte Writer-Typen
+#### Unterstützte Writer-Typen
 `writers.las`, `writers.ply`, `writers.csv`, `writers.gdal`
 
-#### Unterstuetzte Filter-Typen
+#### Unterstützte Filter-Typen
 `filters.range`, `filters.crop`, `filters.merge`, `filters.decimation`, `filters.assign`, `filters.expression`, `filters.reprojection`, `filters.ground`, `filters.hag`, `filters.outlier`, `filters.normal`, `filters.voxel`, `filters.cluster`, `filters.colorize`, `filters.sort`
 
 ---
@@ -1018,41 +1018,41 @@ p = Pipeline(json.dumps({
 }))
 
 # Validieren
-errors = p.validate()  # [] falls gueltig
+errors = p.validate()  # [] falls gültig
 
-# Ausfuehren
-count = p.execute()     # Gibt Gesamtzahl verarbeiteter Punkte zurueck
+# Ausführen
+count = p.execute()     # Gibt Gesamtzahl verarbeiteter Punkte zurück
 
 # Auf Ergebnisse zugreifen
-pc = p.result           # PointCloud der letzten Ausfuehrung
+pc = p.result           # PointCloud der letzten Ausführung
 arrays = p.arrays       # dict[str, np.ndarray]
-meta = p.metadata       # dict mit Quellinformationen
+meta = p.metadata       # dict mit Qüllinformationen
 
-# Zurueck nach JSON serialisieren
+# Zurück nach JSON serialisieren
 json_str = p.to_json()
 ```
 
 #### Methoden
 
-| Methode | Rueckgabe | Beschreibung |
+| Methode | Rückgabe | Beschreibung |
 |---------|-----------|--------------|
-| `validate()` | `list[str]` | Fehlermeldungen (leer = gueltig) |
-| `execute()` | `int` | Pipeline ausfuehren, Punktanzahl zurueckgeben |
+| `validate()` | `list[str]` | Fehlermeldungen (leer = gültig) |
+| `execute()` | `int` | Pipeline ausführen, Punktanzahl zurückgeben |
 | `to_json()` | `str` | Als JSON-String serialisieren |
 
 #### Eigenschaften
 
 | Eigenschaft | Typ | Beschreibung |
 |-------------|-----|--------------|
-| `result` | `PointCloud \| None` | Ergebnis der letzten Ausfuehrung |
-| `arrays` | `dict[str, np.ndarray] \| None` | Punktdaten der letzten Ausfuehrung |
-| `metadata` | `dict[str, Any]` | Metadaten der letzten Ausfuehrung |
+| `result` | `PointCloud \| None` | Ergebnis der letzten Ausführung |
+| `arrays` | `dict[str, np.ndarray] \| None` | Punktdaten der letzten Ausführung |
+| `metadata` | `dict[str, Any]` | Metadaten der letzten Ausführung |
 
 ---
 
 ### StreamingPipeline
 
-Speicherbegrenzte Pipeline, die Daten in Chunks verarbeitet. Liest Chunks, wendet Filter pro Chunk an und schreibt inkrementell. Geeignet fuer Dateien, die groesser als der verfuegbare Arbeitsspeicher sind.
+Speicherbegrenzte Pipeline, die Daten in Chunks verarbeitet. Liest Chunks, wendet Filter pro Chunk an und schreibt inkrementell. Geeignet für Dateien, die grösser als der verfügbare Arbeitsspeicher sind.
 
 **Modul:** `pywolken.pipeline.streaming`
 
@@ -1092,8 +1092,8 @@ for chunk in sp.iter_results():
 | `output_path` | `str \| None` | `None` | Ausgabedateipfad |
 | `filters` | `list[Filter] \| None` | `None` | Filterkette |
 | `chunk_size` | `int` | `1_000_000` | Punkte pro Chunk |
-| `reader_options` | `dict` | `{}` | Zusaetzliche Reader-Optionen |
-| `writer_options` | `dict` | `{}` | Zusaetzliche Writer-Optionen |
+| `reader_options` | `dict` | `{}` | Zusätzliche Reader-Optionen |
+| `writer_options` | `dict` | `{}` | Zusätzliche Writer-Optionen |
 
 #### Streaming-kompatible Filter
 
@@ -1101,7 +1101,7 @@ Diese Filter funktionieren korrekt im Chunk-weisen Modus:
 - `filters.range`, `filters.crop`, `filters.expression`, `filters.assign`
 - `filters.decimation`, `filters.voxel`, `filters.sort`
 
-Diese Filter benoetigen globalen Kontext und sollten **nicht** im Streaming-Modus verwendet werden:
+Diese Filter benötigen globalen Kontext und sollten **nicht** im Streaming-Modus verwendet werden:
 - `filters.ground`, `filters.cluster`, `filters.normal`, `filters.outlier`, `filters.hag`
 
 ---
@@ -1110,7 +1110,7 @@ Diese Filter benoetigen globalen Kontext und sollten **nicht** im Streaming-Modu
 
 ### DEM-Erzeugung
 
-Digitale Hoehenmodelle aus Punktwolken erzeugen.
+Digitale Höhenmodelle aus Punktwolken erzeugen.
 
 **Modul:** `pywolken.raster.dem`
 
@@ -1134,25 +1134,25 @@ print(transform)           # {'xmin': ..., 'ymax': ..., 'resolution': 0.5, ...}
 | Parameter | Typ | Standard | Beschreibung |
 |-----------|-----|----------|--------------|
 | `pc` | `PointCloud` | **erforderlich** | Punktwolke mit X, Y, Z |
-| `resolution` | `float` | **erforderlich** | Rasterzellengroesse in CRS-Einheiten |
+| `resolution` | `float` | **erforderlich** | Rasterzellengrösse in CRS-Einheiten |
 | `method` | `str` | `"idw"` | `"idw"`, `"mean"`, `"nearest"` oder `"tin"` |
 | `bounds` | `tuple` | `None` | `(xmin, ymin, xmax, ymax)` oder automatisch aus Daten |
-| `nodata` | `float` | `-9999.0` | Nodata-Fuellwert |
+| `nodata` | `float` | `-9999.0` | Nodata-Füllwert |
 | `power` | `float` | `2.0` | IDW-Distanzpotenz |
 | `radius` | `float` | `None` | Suchradius (automatisch falls None) |
 | `window_size` | `int` | `6` | IDW-Suchfenster in Rasterzellen |
 
-**Rueckgabe:** `(raster, transform_info)` wobei:
+**Rückgabe:** `(raster, transform_info)` wobei:
 - `raster`: 2D `float32`-Array (Zeilen x Spalten, Ursprung oben links)
-- `transform_info`: Dict mit Schluesseln `xmin`, `ymax`, `resolution`, `nrows`, `ncols`, `crs`
+- `transform_info`: Dict mit Schlüsseln `xmin`, `ymax`, `resolution`, `nrows`, `ncols`, `crs`
 
 #### Interpolationsmethoden
 
-| Methode | Beschreibung | Geschwindigkeit | Qualitaet |
+| Methode | Beschreibung | Geschwindigkeit | Qualität |
 |---------|--------------|-----------------|-----------|
 | `"idw"` | Inverse Distanzgewichtung (Batch-KDTree) | Mittel | Gut |
 | `"mean"` | Rasterzellen-Mittelwert (np.add.at Binning) | Schnell | Geringer |
-| `"nearest"` | Naechster Nachbar (KDTree) | Schnell | Blockartig |
+| `"nearest"` | Nächster Nachbar (KDTree) | Schnell | Blockartig |
 | `"tin"` | Delaunay-TIN + lineare Interpolation | Langsam | Beste |
 
 ---
@@ -1171,8 +1171,8 @@ hs = hillshade(
     dem=raster,
     resolution=0.5,
     azimuth=315.0,     # Licht von NW
-    altitude=45.0,     # 45 Grad ueber dem Horizont
-    z_factor=2.0,      # Vertikale Ueberhöhung
+    altitude=45.0,     # 45 Grad über dem Horizont
+    z_factor=2.0,      # Vertikale überhöhung
 )
 # hs.shape == dem.shape, hs.dtype == uint8
 
@@ -1189,13 +1189,13 @@ hs_multi = multi_directional_hillshade(
 | Parameter | Typ | Standard | Beschreibung |
 |-----------|-----|----------|--------------|
 | `dem` | `np.ndarray` | **erforderlich** | 2D-Float-Array |
-| `resolution` | `float` | **erforderlich** | Zellengroesse in CRS-Einheiten |
+| `resolution` | `float` | **erforderlich** | Zellengrösse in CRS-Einheiten |
 | `azimuth` | `float` | `315.0` | Lichtrichtung (0=N, 90=O, 180=S, 270=W) |
-| `altitude` | `float` | `45.0` | Lichthoehe (0=Horizont, 90=Zenit) |
-| `z_factor` | `float` | `1.0` | Vertikale Ueberhoehung |
+| `altitude` | `float` | `45.0` | Lichthöhe (0=Horizont, 90=Zenit) |
+| `z_factor` | `float` | `1.0` | Vertikale überhöhung |
 | `nodata` | `float` | `-9999.0` | Nodata-Wert im DEM |
 
-**Rueckgabe:** 2D `uint8`-Array (0-255 Schummerung).
+**Rückgabe:** 2D `uint8`-Array (0-255 Schummerung).
 
 #### `multi_directional_hillshade(dem, resolution, altitude=45.0, z_factor=1.0, nodata=-9999.0, directions=None, weights=None)`
 
@@ -1216,7 +1216,7 @@ write_geotiff(
     array=hillshade_array,
     path="hillshade.tif",
     transform_info=transform,     # von create_dem()
-    nodata=None,                  # Kein Nodata fuer Schummerung
+    nodata=None,                  # Kein Nodata für Schummerung
     compress="lzw",
     dtype="uint8",
 )
@@ -1228,7 +1228,7 @@ write_geotiff(
 |-----------|-----|----------|--------------|
 | `array` | `np.ndarray` | **erforderlich** | 2D-Raster-Array |
 | `path` | `str` | **erforderlich** | Ausgabedateipfad |
-| `transform_info` | `dict` | **erforderlich** | Von `create_dem()` — benoetigt `xmin`, `ymax`, `resolution`, `nrows`, `ncols`, `crs` |
+| `transform_info` | `dict` | **erforderlich** | Von `create_dem()` — benötigt `xmin`, `ymax`, `resolution`, `nrows`, `ncols`, `crs` |
 | `nodata` | `float \| None` | `-9999.0` | Nodata-Wert (None zum Weglassen) |
 | `compress` | `str` | `"lzw"` | `"lzw"`, `"deflate"`, `"none"` |
 | `dtype` | `str \| None` | `None` | Ausgabe-Datentyp (automatisch aus Array) |
@@ -1239,7 +1239,7 @@ write_geotiff(
 
 ### Triangulierung
 
-2.5D-Delaunay-Triangulierung — Projektion auf XY, Triangulierung, Verwendung von Z fuer 3D-Vertices.
+2.5D-Delaunay-Triangulierung — Projektion auf XY, Triangulierung, Verwendung von Z für 3D-Vertices.
 
 **Modul:** `pywolken.mesh.triangulate`
 
@@ -1258,9 +1258,9 @@ print(mesh)  # Mesh(45,000 vertices, 89,000 faces)
 | Parameter | Typ | Standard | Beschreibung |
 |-----------|-----|----------|--------------|
 | `pc` | `PointCloud` | **erforderlich** | Punktwolke mit X, Y, Z |
-| `max_edge_length` | `float \| None` | `None` | Dreiecke mit laengeren Kanten entfernen |
+| `max_edge_length` | `float \| None` | `None` | Dreiecke mit längeren Kanten entfernen |
 
-Extrahiert automatisch Vertex-Farben aus Red/Green/Blue-Dimensionen, falls vorhanden.
+Extrahiert automatisch Vertex-Farben aus Red/Green/Blü-Dimensionen, falls vorhanden.
 
 ### Mesh-Klasse
 
@@ -1277,8 +1277,8 @@ mesh.vertex_colors   # (N, 3) uint8 Array oder None
 ```python
 # In bestimmtes Format schreiben
 mesh.write_obj("output.obj")    # Wavefront OBJ
-mesh.write_stl("output.stl")    # Binaer-STL
-mesh.write_ply("output.ply")    # ASCII PLY (mit Farben falls verfuegbar)
+mesh.write_stl("output.stl")    # Binär-STL
+mesh.write_ply("output.ply")    # ASCII PLY (mit Farben falls verfügbar)
 
 # Automatische Erkennung anhand der Endung
 mesh.write("output.obj")
@@ -1292,7 +1292,7 @@ decimated.write("simplified.obj")
 
 ## Parallelverarbeitung (Dask)
 
-Optionale Dask-Integration fuer parallele Chunk-Verarbeitung. Erfordert `pip install pywolken[dask]`.
+Optionale Dask-Integration für parallele Chunk-Verarbeitung. Erfordert `pip install pywolken[dask]`.
 
 **Modul:** `pywolken.parallel`
 
@@ -1321,13 +1321,13 @@ result = parallel_apply(pc, lambda chunk: chunk.mask(chunk["Z"] > 100), n_chunks
 
 #### `parallel_read(paths, reader=None, **options) -> PointCloud`
 
-Mehrere Dateien parallel lesen und zusammenfuehren.
+Mehrere Dateien parallel lesen und zusammenführen.
 
 #### `parallel_filter(pc, filters, n_chunks=4) -> PointCloud`
 
-Punktwolke in Chunks aufteilen, Filter parallel anwenden, Ergebnisse zusammenfuehren.
+Punktwolke in Chunks aufteilen, Filter parallel anwenden, Ergebnisse zusammenführen.
 
-**Nur fuer punktweise Filter** (range, expression, assign, decimation) — **NICHT** fuer raeumliche Filter (ground, cluster, normal, outlier).
+**Nur für punktweise Filter** (range, expression, assign, decimation) — **NICHT** für räumliche Filter (ground, cluster, normal, outlier).
 
 #### `parallel_apply(pc, func, n_chunks=4) -> PointCloud`
 
@@ -1341,7 +1341,7 @@ Der Befehl `pywolken` wird als Konsolen-Skript-Einstiegspunkt installiert.
 
 ### `pywolken info`
 
-Informationen ueber eine Punktwolken-Datei anzeigen.
+Informationen über eine Punktwolken-Datei anzeigen.
 
 ```bash
 pywolken info terrain.laz
@@ -1364,11 +1364,11 @@ LAS version: 1.4
 
 ### `pywolken pipeline`
 
-Eine JSON-Pipeline-Datei ausfuehren.
+Eine JSON-Pipeline-Datei ausführen.
 
 ```bash
 pywolken pipeline workflow.json
-pywolken pipeline workflow.json -v    # Ausfuehrliche Protokollierung
+pywolken pipeline workflow.json -v    # Ausführliche Protokollierung
 ```
 
 ### `pywolken convert`
@@ -1383,7 +1383,7 @@ pywolken convert input.ply output.las
 
 ### `pywolken merge`
 
-Mehrere Dateien zu einer zusammenfuehren.
+Mehrere Dateien zu einer zusammenführen.
 
 ```bash
 pywolken merge tile1.laz tile2.laz tile3.laz -o merged.laz
@@ -1401,7 +1401,7 @@ Version ausgeben und beenden.
 
 ```
 src/pywolken/
-├── __init__.py              # Oeffentliche API-Exporte
+├── __init__.py              # öffentliche API-Exporte
 ├── _version.py              # Version: "0.1.0"
 ├── cli.py                   # CLI-Einstiegspunkt
 ├── parallel.py              # Optionale Dask-Integration
@@ -1410,13 +1410,13 @@ src/pywolken/
 │   ├── pointcloud.py        # PointCloud-Klasse (Dict-von-Arrays)
 │   ├── dimensions.py        # Standard-Dimensionsdefinitionen
 │   ├── bounds.py            # Achsenausgerichtete Bounding-Box
-│   └── metadata.py          # Quell-Metadaten-Container
+│   └── metadata.py          # Qüll-Metadaten-Container
 │
 ├── io/                      # Reader & Writer
 │   ├── base.py              # Abstrakte Reader/Writer-Basisklassen
 │   ├── registry.py          # Automatische Formaterkennung, Lese-/Schreibfunktionen
 │   ├── las.py               # LAS/LAZ via laspy[lazrs]
-│   ├── ply.py               # PLY (ASCII + binaer)
+│   ├── ply.py               # PLY (ASCII + binär)
 │   ├── csv.py               # CSV/TXT/XYZ (Trennzeichen-basierter Text)
 │   └── gdal.py              # GeoTIFF-DEM-Writer via rasterio
 │
@@ -1424,27 +1424,27 @@ src/pywolken/
 │   ├── base.py              # Filter-ABC
 │   ├── registry.py          # Filter-Erkennung & -Registrierung
 │   ├── range.py             # Dimensionsbereichs-Filterung
-│   ├── crop.py              # Raeumlicher Bounding-Box-Zuschnitt
-│   ├── merge.py             # Mehrere Wolken zusammenfuehren
+│   ├── crop.py              # Räumlicher Bounding-Box-Zuschnitt
+│   ├── merge.py             # Mehrere Wolken zusammenführen
 │   ├── decimation.py        # Unterabtastung (Schritt/Anteil/Anzahl)
 │   ├── assign.py            # Dimensionswerte setzen
 │   ├── expression.py        # Boolescher Ausdrucksfilter
 │   ├── reprojection.py      # CRS-Transformation
 │   ├── ground.py            # SMRF-Bodenklassifikation
-│   ├── hag.py               # Hoehe ueber Grund
+│   ├── hag.py               # Höhe über Grund
 │   ├── outlier.py           # Statistische/Radius-Ausreisserentfernung
-│   ├── normal.py            # PCA-Oberflaechennormalen
+│   ├── normal.py            # PCA-Oberflächennormalen
 │   ├── voxel.py             # Voxelraster-Downsampling
 │   ├── cluster.py           # DBSCAN-Clustering
 │   ├── colorize.py          # RGB aus Raster-Overlay
-│   └── sort.py              # Morton/XYZ raeumliche Sortierung
+│   └── sort.py              # Morton/XYZ räumliche Sortierung
 │
 ├── pipeline/                # Pipeline-Engine
 │   ├── pipeline.py          # JSON-Pipeline (PDAL-kompatibel)
 │   └── streaming.py         # Speicherbegrenzte Chunk-Pipeline
 │
 ├── raster/                  # Rasterverarbeitung
-│   ├── dem.py               # DEM-Erzeugung (IDW/Mittelwert/Naechster Nachbar/TIN)
+│   ├── dem.py               # DEM-Erzeugung (IDW/Mittelwert/Nächster Nachbar/TIN)
 │   ├── hillshade.py         # Schummerung (Horn-Methode)
 │   └── export.py            # GeoTIFF-Export via rasterio
 │
@@ -1457,19 +1457,19 @@ src/pywolken/
 
 ### Designprinzipien
 
-1. **Spaltenorientierte Speicherung:** Jede Dimension ist ein separates NumPy-Array. Hervorragende Cache-Lokalitaet fuer Einzeldimensionsoperationen (Filtern, Statistiken). Einfaches Hinzufuegen/Entfernen von Dimensionen.
+1. **Spaltenorientierte Speicherung:** Jede Dimension ist ein separates NumPy-Array. Hervorragende Cache-Lokalität für Einzeldimensionsoperationen (Filtern, Statistiken). Einfaches Hinzufügen/Entfernen von Dimensionen.
 
-2. **Unveraenderliche Filter:** Filter modifizieren niemals die Eingabe-PointCloud. Sie geben immer ein neues Objekt zurueck.
+2. **Unveränderliche Filter:** Filter modifizieren niemals die Eingabe-PointCloud. Sie geben immer ein neüs Objekt zurück.
 
-3. **Plugin-Registries:** Reader, Writer und Filter werden ueber Typnamen registriert. Einfach erweiterbar mit eigenen Implementierungen.
+3. **Plugin-Registries:** Reader, Writer und Filter werden über Typnamen registriert. Einfach erweiterbar mit eigenen Implementierungen.
 
-4. **Verzoegerte Registrierung:** Integrierte I/O-Handler und Filter werden erst beim ersten Zugriff importiert, um die Importzeit gering zu halten.
+4. **Verzögerte Registrierung:** Integrierte I/O-Handler und Filter werden erst beim ersten Zugriff importiert, um die Importzeit gering zu halten.
 
-5. **PDAL-Kompatibilitaet:** JSON-Pipeline-Format, Bereichssyntax, Filter-Namenskonventionen und CLI-Muster orientieren sich an PDAL fuer eine einfache Migration.
+5. **PDAL-Kompatibilität:** JSON-Pipeline-Format, Bereichssyntax, Filter-Namenskonventionen und CLI-Muster orientieren sich an PDAL für eine einfache Migration.
 
-6. **Keine C++-Kompilierung:** Alle Abhaengigkeiten werden als vorgefertigte Wheels ausgeliefert (lazrs = Rust, NumPy/SciPy = C/Fortran, aber alle ueber pip verfuegbar).
+6. **Keine C++-Kompilierung:** Alle Abhängigkeiten werden als vorgefertigte Wheels ausgeliefert (lazrs = Rust, NumPy/SciPy = C/Fortran, aber alle über pip verfügbar).
 
-### Eigene Filter hinzufuegen
+### Eigene Filter hinzufügen
 
 ```python
 from pywolken.filters.base import Filter
@@ -1492,7 +1492,7 @@ filter_registry.register(MyFilter)
 # {"type": "filters.my_custom", "threshold": 200}
 ```
 
-### Eigene I/O-Formate hinzufuegen
+### Eigene I/O-Formate hinzufügen
 
 ```python
 from pywolken.io.base import Reader, Writer
@@ -1516,9 +1516,9 @@ io_registry.register_reader(MyReader)
 
 ---
 
-## Abhaengigkeiten
+## Abhängigkeiten
 
-### Laufzeit-Abhaengigkeitsgraph
+### Laufzeit-Abhängigkeitsgraph
 
 ```
 pywolken
@@ -1540,7 +1540,7 @@ Optional:
 
 ## Beispiele
 
-### Vollstaendiger Workflow: LAZ zu Schummerungs-GeoTIFF
+### Vollständiger Workflow: LAZ zu Schummerungs-GeoTIFF
 
 ```python
 import pywolken
@@ -1612,7 +1612,7 @@ from pywolken.mesh import triangulate_2d
 pc = pywolken.read("terrain.laz")
 ground = pc.mask(pc["Classification"] == 2)
 
-# Dezimieren fuer handhabbare Mesh-Groesse
+# Dezimieren für handhabbare Mesh-Grösse
 from pywolken.filters.voxel import VoxelFilter
 ground_voxel = VoxelFilter(cell_size=2.0).filter(ground)
 
@@ -1687,7 +1687,7 @@ pc = GroundFilter().filter(pc)
 pc = HagFilter().filter(pc)
 tall = ExpressionFilter(expression="HeightAboveGround > 20").filter(pc)
 
-print(f"{tall.num_points:,} Punkte ueber 20m gefunden")
+print(f"{tall.num_points:,} Punkte über 20m gefunden")
 pywolken.write(tall, "tall_objects.laz")
 ```
 
@@ -1706,10 +1706,10 @@ print(f"Z-Bereich:   {pc['Z'].min():.2f} - {pc['Z'].max():.2f} m")
 print(f"Mittel Z:    {pc['Z'].mean():.2f} m")
 print(f"Dimensionen: {pc.dimensions}")
 
-# Klassifikationsaufschluesselung
+# Klassifikationsaufschlüsselung
 if "Classification" in pc:
     from pywolken.core.dimensions import CLASSIFICATION_CODES
-    classes, counts = np.unique(pc["Classification"], return_counts=True)
+    classes, counts = np.uniqü(pc["Classification"], return_counts=Trü)
     for cls, count in zip(classes, counts):
         name = CLASSIFICATION_CODES.get(int(cls), "Unknown")
         print(f"  Klasse {cls} ({name}): {count:,}")

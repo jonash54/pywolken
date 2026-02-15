@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io as _io
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -33,52 +34,43 @@ class CsvReader(Reader):
                 f.readline()
 
             if header_str:
-                # User-provided column names
                 columns = [c.strip() for c in header_str.split(",")]
             else:
-                # Read first line as header
                 first_line = f.readline().strip()
                 if delimiter is None:
                     delimiter = self._detect_delimiter(first_line)
                 columns = [c.strip() for c in first_line.split(delimiter)]
 
-            # Read remaining lines
-            lines = f.readlines()
+            # Read remaining content as a single string
+            remaining = f.read()
 
-        if delimiter is None and lines:
-            delimiter = self._detect_delimiter(lines[0])
+        if delimiter is None and remaining:
+            delimiter = self._detect_delimiter(remaining.split("\n", 1)[0])
 
-        # Parse data
-        n = len(lines)
-        arrays: dict[str, list] = {col: [] for col in columns}
-
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-            values = line.split(delimiter)
+        # Bulk parse with np.loadtxt — orders of magnitude faster than row-by-row
+        if not remaining.strip():
+            np_arrays = {col: np.array([], dtype=np.float64) for col in columns}
+        else:
+            data = np.loadtxt(
+                _io.StringIO(remaining),
+                delimiter=delimiter,
+                dtype=np.float64,
+                ndmin=2,
+            )
+            np_arrays: dict[str, np.ndarray] = {}
             for j, col in enumerate(columns):
-                if j < len(values):
-                    arrays[col].append(values[j].strip())
+                if j < data.shape[1]:
+                    arr = data[:, j]
+                    # Detect integer columns (no fractional parts in source)
+                    if np.all(arr == np.floor(arr)):
+                        # Check original text for decimal points in this column
+                        first_line = remaining.strip().split("\n", 1)[0]
+                        vals = first_line.split(delimiter)
+                        if j < len(vals) and "." not in vals[j].strip():
+                            arr = arr.astype(np.int64)
+                    np_arrays[col] = arr
                 else:
-                    arrays[col].append("0")
-
-        # Convert to numpy arrays with appropriate types
-        np_arrays: dict[str, np.ndarray] = {}
-        for col, vals in arrays.items():
-            if not vals:
-                np_arrays[col] = np.array([], dtype=np.float64)
-                continue
-            try:
-                # Try float first (handles both int and float values)
-                arr = np.array(vals, dtype=np.float64)
-                # If all values are integer-valued, use int
-                if np.all(arr == arr.astype(np.int64)) and not any("." in v for v in vals):
-                    arr = arr.astype(np.int64)
-                np_arrays[col] = arr
-            except ValueError:
-                # Keep as string (unusual for point clouds)
-                np_arrays[col] = np.array(vals, dtype=np.float64)
+                    np_arrays[col] = np.zeros(data.shape[0], dtype=np.float64)
 
         pc = PointCloud.from_dict(np_arrays)
         pc._metadata = Metadata(
@@ -127,21 +119,30 @@ class CsvWriter(Writer):
         write_header = options.get("header", True)
         precision = int(options.get("precision", 6))
 
-        with open(path, "w") as f:
-            dims = pc.dimensions
+        dims = pc.dimensions
 
-            if write_header:
-                f.write(delimiter.join(dims) + "\n")
+        # Build a 2D structured array and use np.savetxt for bulk writing
+        # Collect all columns as float64 for savetxt, with int columns formatted separately
+        float_mask = [np.issubdtype(pc[d].dtype, np.floating) for d in dims]
+        fmt_parts = []
+        for is_float in float_mask:
+            if is_float:
+                fmt_parts.append(f"%.{precision}f")
+            else:
+                fmt_parts.append("%d")
 
-            for i in range(pc.num_points):
-                values = []
-                for dim in dims:
-                    v = pc[dim][i]
-                    if np.issubdtype(pc[dim].dtype, np.floating):
-                        values.append(f"{v:.{precision}f}")
-                    else:
-                        values.append(str(int(v)))
-                f.write(delimiter.join(values) + "\n")
+        # Stack into a 2D array (all as float64 for np.savetxt compatibility)
+        data = np.column_stack([pc[d].astype(np.float64) for d in dims])
+
+        header_line = delimiter.join(dims) if write_header else ""
+        np.savetxt(
+            path,
+            data,
+            fmt=fmt_parts,
+            delimiter=delimiter,
+            header=header_line,
+            comments="",  # Don't prefix header with #
+        )
 
         return pc.num_points
 

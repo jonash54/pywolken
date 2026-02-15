@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import io as _io
 import struct
 from pathlib import Path
 from typing import Any, Iterator
@@ -137,23 +138,26 @@ class PlyReader(Reader):
         self, f, vertex_count: int,
         properties: list[tuple[str, str]], path: str,
     ) -> PointCloud:
-        # Pre-allocate arrays
-        arrays: dict[str, np.ndarray] = {}
+        # Build property info
         prop_info: list[tuple[str, np.dtype]] = []
-
         for prop_name, ply_type in properties:
             if ply_type not in _PLY_TYPES:
                 raise ValueError(f"Unknown PLY type: {ply_type}")
             dtype = _PLY_TYPES[ply_type][0]
             dim_name = _PLY_DIM_MAP.get(prop_name.lower(), prop_name)
-            arrays[dim_name] = np.empty(vertex_count, dtype=dtype)
             prop_info.append((dim_name, dtype))
 
-        for i in range(vertex_count):
-            line = f.readline().decode("ascii", errors="replace").strip()
-            values = line.split()
-            for j, (dim_name, dtype) in enumerate(prop_info):
-                arrays[dim_name][i] = dtype.type(values[j])
+        # Bulk-read all vertex lines at once into a float64 2D array
+        text = f.read().decode("ascii", errors="replace")
+        # Only take vertex_count lines (rest may be face data)
+        lines = text.strip().split("\n")[:vertex_count]
+        raw = np.loadtxt(_io.StringIO("\n".join(lines)), dtype=np.float64, ndmin=2)
+
+        # Split columns and cast to target dtypes
+        arrays: dict[str, np.ndarray] = {}
+        for j, (dim_name, dtype) in enumerate(prop_info):
+            if j < raw.shape[1]:
+                arrays[dim_name] = raw[:, j].astype(dtype)
 
         pc = PointCloud.from_dict(arrays)
         pc._metadata = Metadata(
@@ -168,22 +172,24 @@ class PlyReader(Reader):
         properties: list[tuple[str, str]],
         endian: str, path: str,
     ) -> PointCloud:
-        # Build struct format and array list
-        fmt_chars = []
+        # Build a NumPy structured dtype for bulk reading
+        np_endian = "<" if endian == "<" else ">"
+        dt_fields = []
         prop_info: list[tuple[str, np.dtype]] = []
 
-        for prop_name, ply_type in properties:
+        for i, (prop_name, ply_type) in enumerate(properties):
             if ply_type not in _PLY_TYPES:
                 raise ValueError(f"Unknown PLY type: {ply_type}")
-            dtype, fmt_char, _ = _PLY_TYPES[ply_type]
+            dtype = _PLY_TYPES[ply_type][0]
             dim_name = _PLY_DIM_MAP.get(prop_name.lower(), prop_name)
-            fmt_chars.append(fmt_char)
+            # Use index-based field name to avoid duplicates in structured array
+            dt_fields.append((f"f{i}", dtype.newbyteorder(np_endian)))
             prop_info.append((dim_name, dtype))
 
-        struct_fmt = endian + "".join(fmt_chars)
-        row_size = struct.calcsize(struct_fmt)
+        struct_dtype = np.dtype(dt_fields)
+        row_size = struct_dtype.itemsize
 
-        # Read all vertex data at once
+        # Bulk-read all vertex data and reinterpret as structured array
         data = f.read(row_size * vertex_count)
         if len(data) < row_size * vertex_count:
             raise ValueError(
@@ -191,17 +197,12 @@ class PlyReader(Reader):
                 f"got {len(data)}"
             )
 
-        # Pre-allocate arrays
-        arrays: dict[str, np.ndarray] = {}
-        for dim_name, dtype in prop_info:
-            arrays[dim_name] = np.empty(vertex_count, dtype=dtype)
+        structured = np.frombuffer(data, dtype=struct_dtype, count=vertex_count)
 
-        # Unpack rows
-        for i in range(vertex_count):
-            offset = i * row_size
-            values = struct.unpack_from(struct_fmt, data, offset)
-            for j, (dim_name, _) in enumerate(prop_info):
-                arrays[dim_name][i] = values[j]
+        # Extract columns
+        arrays: dict[str, np.ndarray] = {}
+        for i, (dim_name, dtype) in enumerate(prop_info):
+            arrays[dim_name] = structured[f"f{i}"].astype(dtype.newbyteorder("="))
 
         pc = PointCloud.from_dict(arrays)
         pc._metadata = Metadata(
@@ -214,7 +215,6 @@ class PlyReader(Reader):
     def read_chunked(
         self, path: str, chunk_size: int = 1_000_000, **options: Any
     ) -> Iterator[PointCloud]:
-        # For PLY we read all and chunk in memory
         pc = self.read(path, **options)
         yield from pc.iter_chunks(chunk_size)
 
@@ -268,36 +268,37 @@ class PlyWriter(Writer):
         return pc.num_points
 
     def _write_ascii(self, f, pc: PointCloud, props):
-        dim_names = pc.dimensions
-        # Write each row as space-separated values
-        for i in range(pc.num_points):
-            values = []
-            for dim_name in dim_names:
-                v = pc[dim_name][i]
-                if np.issubdtype(pc[dim_name].dtype, np.floating):
-                    values.append(f"{v:.10g}")
-                else:
-                    values.append(str(int(v)))
-            line = " ".join(values) + "\n"
-            f.write(line.encode("ascii"))
+        dims = pc.dimensions
+        # Vectorized: build format strings per column, use np.savetxt
+        fmt_parts = []
+        for dim_name in dims:
+            if np.issubdtype(pc[dim_name].dtype, np.floating):
+                fmt_parts.append("%.10g")
+            else:
+                fmt_parts.append("%d")
+
+        data = np.column_stack([pc[d].astype(np.float64) for d in dims])
+        buf = _io.BytesIO()
+        np.savetxt(buf, data, fmt=fmt_parts, delimiter=" ")
+        f.write(buf.getvalue())
 
     def _write_binary(self, f, pc: PointCloud, props, endian: str):
-        # Build struct format
-        fmt_chars = []
-        for _, ply_type, _ in props:
-            _, fmt_char, _ = _PLY_TYPES[ply_type]
-            fmt_chars.append(fmt_char)
+        # Build a structured NumPy array and write bulk bytes
+        np_endian = "<" if endian == "<" else ">"
+        dt_fields = []
+        dims = pc.dimensions
 
-        struct_fmt = endian + "".join(fmt_chars)
-        dim_names = pc.dimensions
+        for i, (_, ply_type, _) in enumerate(props):
+            dtype = _PLY_TYPES[ply_type][0]
+            dt_fields.append((f"f{i}", dtype.newbyteorder(np_endian)))
 
-        # Pack all rows
-        for i in range(pc.num_points):
-            values = []
-            for dim_name in dim_names:
-                v = pc[dim_name][i]
-                values.append(v.item())  # Convert numpy scalar to Python
-            f.write(struct.pack(struct_fmt, *values))
+        struct_dtype = np.dtype(dt_fields)
+        structured = np.empty(pc.num_points, dtype=struct_dtype)
+
+        for i, dim_name in enumerate(dims):
+            structured[f"f{i}"] = pc[dim_name]
+
+        f.write(structured.tobytes())
 
     @classmethod
     def extensions(cls) -> list[str]:

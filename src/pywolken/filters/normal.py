@@ -27,22 +27,25 @@ class NormalFilter(Filter):
     def filter(self, pc: PointCloud) -> PointCloud:
         k = int(self.options.get("k", 8))
         points = np.column_stack([pc["X"], pc["Y"], pc["Z"]])
+        n = len(points)
         tree = cKDTree(points)
 
         # Query k+1 neighbors (includes self)
-        _, idx = tree.query(points, k=min(k + 1, len(points)))
+        _, idx = tree.query(points, k=min(k + 1, n))
 
-        normals = np.zeros((len(points), 3), dtype=np.float64)
+        # Vectorized PCA: batch all neighborhoods at once
+        # idx shape: (n, k+1) → gather all neighborhoods
+        neighborhoods = points[idx]                        # (n, k+1, 3)
+        centroids = neighborhoods.mean(axis=1, keepdims=True)  # (n, 1, 3)
+        centered = neighborhoods - centroids               # (n, k+1, 3)
 
-        for i in range(len(points)):
-            neighbors = points[idx[i]]
-            # Center the neighborhood
-            centered = neighbors - neighbors.mean(axis=0)
-            # Covariance matrix
-            cov = centered.T @ centered
-            # Eigendecomposition — smallest eigenvector is the normal
-            eigenvalues, eigenvectors = np.linalg.eigh(cov)
-            normals[i] = eigenvectors[:, 0]  # Smallest eigenvalue
+        # Batch covariance: cov[i] = centered[i].T @ centered[i]
+        # Using einsum for (n, 3, k+1) @ (n, k+1, 3) → (n, 3, 3)
+        cov = np.einsum("nki,nkj->nij", centered, centered)  # (n, 3, 3)
+
+        # Batch eigendecomposition
+        eigenvalues, eigenvectors = np.linalg.eigh(cov)   # (n, 3), (n, 3, 3)
+        normals = eigenvectors[:, :, 0]                    # Smallest eigenvalue → col 0
 
         # Orient normals upward (Z component positive)
         flip = normals[:, 2] < 0

@@ -98,47 +98,66 @@ def _interpolate_idw(
     nodata: float, power: float, radius: float | None,
     window_size: int,
 ) -> np.ndarray:
-    """Inverse Distance Weighting interpolation."""
-    # Build KDTree for fast neighbor lookups
+    """Inverse Distance Weighting interpolation (vectorized k-NN)."""
     tree = cKDTree(np.column_stack([x, y]))
 
     if radius is None:
         radius = resolution * window_size
 
+    # Use fixed-k query for fully vectorized computation
+    k = min(16, len(x))
+
     # Generate grid cell center coordinates
     col_coords = xmin + (np.arange(ncols) + 0.5) * resolution
     row_coords = ymin + (np.arange(nrows) + 0.5) * resolution
-
-    # Grid coords as 2D arrays
     grid_x, grid_y = np.meshgrid(col_coords, row_coords)
     grid_points = np.column_stack([grid_x.ravel(), grid_y.ravel()])
 
-    # Query all neighbors within radius for each grid cell
     raster = np.full(nrows * ncols, nodata, dtype=np.float32)
 
     # Process in batches to limit memory
-    batch_size = 50_000
+    batch_size = 100_000
     for start in range(0, len(grid_points), batch_size):
         end = min(start + batch_size, len(grid_points))
         batch = grid_points[start:end]
 
-        neighbors = tree.query_ball_point(batch, r=radius)
-        for i, idx_list in enumerate(neighbors):
-            if not idx_list:
-                continue
-            idx_arr = np.array(idx_list)
-            dx = x[idx_arr] - batch[i, 0]
-            dy = y[idx_arr] - batch[i, 1]
-            dist = np.sqrt(dx * dx + dy * dy)
+        # Fixed-k query returns (batch_size, k) arrays — fully vectorizable
+        dist, idx = tree.query(batch, k=k)
 
-            # Handle points exactly at grid center
-            zero_mask = dist == 0
-            if np.any(zero_mask):
-                raster[start + i] = float(np.mean(z[idx_arr[zero_mask]]))
-                continue
+        # Ensure 2D even if k=1
+        if k == 1:
+            dist = dist[:, np.newaxis]
+            idx = idx[:, np.newaxis]
 
-            weights = 1.0 / np.power(dist, power)
-            raster[start + i] = float(np.sum(weights * z[idx_arr]) / np.sum(weights))
+        # Mask neighbors beyond radius
+        valid = dist <= radius
+
+        # Handle zero distances (point exactly at grid center)
+        zero_mask = dist == 0
+        has_zero = np.any(zero_mask, axis=1)
+
+        # Compute IDW weights (zero/invalid → weight 0)
+        safe_dist = np.where((dist > 0) & valid, dist, 1.0)
+        weights = np.where((dist > 0) & valid, 1.0 / np.power(safe_dist, power), 0.0)
+
+        # Get Z values for all neighbors
+        z_neighbors = z[idx]  # (batch, k)
+
+        # Weighted average
+        weighted_z = (weights * z_neighbors).sum(axis=1)
+        weight_sum = weights.sum(axis=1)
+
+        has_neighbors = weight_sum > 0
+        result = np.where(has_neighbors, weighted_z / weight_sum, nodata)
+
+        # Override with exact match for zero-distance points
+        if np.any(has_zero):
+            zero_z = np.where(zero_mask, z_neighbors, 0.0)
+            zero_count = zero_mask.sum(axis=1)
+            zero_mean = np.where(zero_count > 0, zero_z.sum(axis=1) / zero_count, 0.0)
+            result = np.where(has_zero, zero_mean, result)
+
+        raster[start:end] = result.astype(np.float32)
 
     # Reshape to 2D, flip so row 0 is the northern (top) row
     raster = raster.reshape(nrows, ncols)

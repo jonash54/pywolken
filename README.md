@@ -2,29 +2,77 @@
 
 Python point cloud processing library — the Python alternative to PDAL.
 
+No C++ compilation required. Pure Python with NumPy, SciPy, laspy, pyproj.
+
 ```bash
 pip install pywolken
 ```
+
+## Features
+
+- **I/O:** LAS/LAZ, PLY (ASCII + binary), CSV/TXT/XYZ, GeoTIFF
+- **15 Filters:** range, crop, merge, decimation, assign, expression, reprojection, ground classification (SMRF), height above ground, outlier removal, surface normals, voxel downsampling, DBSCAN clustering, raster colorization, spatial sorting
+- **JSON Pipelines:** PDAL-compatible declarative processing chains
+- **Raster:** DEM generation (IDW/mean/nearest/TIN), hillshade (Horn's method), GeoTIFF export
+- **3D Mesh:** 2.5D Delaunay triangulation, OBJ/STL/PLY export
+- **Streaming:** Memory-bounded chunked processing for huge files
+- **Parallel:** Optional Dask integration for multi-file and multi-chunk processing
+- **CLI:** `pywolken info`, `pywolken pipeline`, `pywolken convert`, `pywolken merge`
 
 ## Quick Start
 
 ```python
 import pywolken
 
-# Read a point cloud
+# Read any format (auto-detected)
 pc = pywolken.read("terrain.laz")
-print(pc)  # PointCloud(12,345,678 points, dims=[X, Y, Z, Intensity, Classification, GpsTime])
+print(pc)  # PointCloud(45,266,951 points, dims=[X, Y, Z, Intensity, ...])
 
-# JSON pipeline (PDAL-compatible)
+# Filter
+ground = pc.mask(pc["Classification"] == 2)
+
+# Write to any format
+pywolken.write(ground, "ground.laz")
+pywolken.write(ground, "ground.ply")
+pywolken.write(ground, "ground.csv")
+```
+
+## JSON Pipeline
+
+```python
 import json
 pipeline = pywolken.Pipeline(json.dumps({
     "pipeline": [
         "input.laz",
+        {"type": "filters.ground"},
         {"type": "filters.range", "limits": "Classification[2:2]"},
+        {"type": "filters.decimation", "step": 10},
         "output.las"
     ]
 }))
 count = pipeline.execute()
+```
+
+## CLI
+
+```bash
+pywolken info terrain.laz
+pywolken convert input.laz output.ply
+pywolken pipeline workflow.json -v
+pywolken merge tile1.laz tile2.laz -o merged.laz
+```
+
+## Full Documentation
+
+See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for the complete API reference, all filter options, examples, and architecture guide.
+
+## Install Extras
+
+```bash
+pip install pywolken[raster]    # + GeoTIFF export (rasterio)
+pip install pywolken[dask]      # + parallel processing
+pip install pywolken[all]       # everything
+pip install pywolken[dev]       # + pytest, ruff
 ```
 
 ## License

@@ -55,6 +55,12 @@ def _ensure_registered() -> None:
     from pywolken.filters import reprojection as _reprojection  # noqa: F401
     from pywolken.filters import ground as _ground  # noqa: F401
     from pywolken.filters import hag as _hag  # noqa: F401
+    from pywolken.filters import outlier as _outlier  # noqa: F401
+    from pywolken.filters import normal as _normal  # noqa: F401
+    from pywolken.filters import voxel as _voxel  # noqa: F401
+    from pywolken.filters import cluster as _cluster  # noqa: F401
+    from pywolken.filters import colorize as _colorize  # noqa: F401
+    from pywolken.filters import sort as _sort  # noqa: F401
 
 
 def get_filter(type_name: str, **options: Any) -> Filter:

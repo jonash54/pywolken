@@ -46,16 +46,12 @@ def _ensure_registered() -> None:
     _registered = True
 
     # Import all built-in filters (they register themselves on import)
-    # Phase 1: none yet
-    # Phase 2: range, crop, merge, decimation, assign, expression
-    try:
-        from pywolken.filters import range as _range  # noqa: F401
-    except ImportError:
-        pass
-    try:
-        from pywolken.filters import crop as _crop  # noqa: F401
-    except ImportError:
-        pass
+    from pywolken.filters import range as _range  # noqa: F401
+    from pywolken.filters import crop as _crop  # noqa: F401
+    from pywolken.filters import merge as _merge  # noqa: F401
+    from pywolken.filters import decimation as _decimation  # noqa: F401
+    from pywolken.filters import assign as _assign  # noqa: F401
+    from pywolken.filters import expression as _expression  # noqa: F401
 
 
 def get_filter(type_name: str, **options: Any) -> Filter:

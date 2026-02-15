@@ -1,9 +1,11 @@
 # pywolken Documentation
 
+> **[Deutsche Dokumentation](DOKUMENTATION.md)**
+
 > **Version:** 0.1.0
 > **License:** MIT
 > **Python:** >= 3.10
-> **Repository:** [github.com/54/pywolken](https://github.com/54/pywolken)
+> **Repository:** [github.com/jonash54/pywolken](https://github.com/jonash54/pywolken)
 
 pywolken is a pure-Python point cloud processing library — a complete alternative to PDAL.
 It reads LAS/LAZ/PLY/CSV files, applies filter chains via JSON pipelines, generates DEMs and hillshades, creates 3D meshes, and scales to billions of points via chunked streaming and optional Dask parallelism. No C++ compilation required.

@@ -80,7 +80,8 @@ pywolken merge tile1.laz tile2.laz -o merged.laz
 
 ## Full Documentation
 
-See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for the complete API reference, all filter options, examples, and architecture guide.
+- [English](docs/DOCUMENTATION.md) — complete API reference, all filter options, examples, and architecture guide
+- [Deutsch](docs/DOKUMENTATION.md) — vollständige API-Referenz, alle Filteroptionen, Beispiele und Architektur
 
 ## License
 

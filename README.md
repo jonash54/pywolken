@@ -1,11 +1,27 @@
 # pywolken
 
+[![PyPI version](https://img.shields.io/pypi/v/pywolken)](https://pypi.org/project/pywolken/)
+[![Python](https://img.shields.io/pypi/pyversions/pywolken)](https://pypi.org/project/pywolken/)
+[![License: MIT](https://img.shields.io/pypi/l/pywolken)](https://github.com/jonash54/pywolken/blob/master/LICENSE)
+
 Python point cloud processing library — the Python alternative to PDAL.
 
 No C++ compilation required. Pure Python with NumPy, SciPy, laspy, pyproj.
 
+## Installation
+
 ```bash
 pip install pywolken
+```
+
+Optional extras:
+
+```bash
+pip install pywolken[raster]    # + GeoTIFF export (rasterio)
+pip install pywolken[viz]       # + matplotlib, plotly
+pip install pywolken[dask]      # + parallel processing
+pip install pywolken[mesh]      # + 3D mesh (open3d)
+pip install pywolken[all]       # everything
 ```
 
 ## Features
@@ -65,15 +81,6 @@ pywolken merge tile1.laz tile2.laz -o merged.laz
 ## Full Documentation
 
 See [docs/DOCUMENTATION.md](docs/DOCUMENTATION.md) for the complete API reference, all filter options, examples, and architecture guide.
-
-## Install Extras
-
-```bash
-pip install pywolken[raster]    # + GeoTIFF export (rasterio)
-pip install pywolken[dask]      # + parallel processing
-pip install pywolken[all]       # everything
-pip install pywolken[dev]       # + pytest, ruff
-```
 
 ## License
 

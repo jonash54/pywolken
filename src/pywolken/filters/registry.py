@@ -52,6 +52,9 @@ def _ensure_registered() -> None:
     from pywolken.filters import decimation as _decimation  # noqa: F401
     from pywolken.filters import assign as _assign  # noqa: F401
     from pywolken.filters import expression as _expression  # noqa: F401
+    from pywolken.filters import reprojection as _reprojection  # noqa: F401
+    from pywolken.filters import ground as _ground  # noqa: F401
+    from pywolken.filters import hag as _hag  # noqa: F401
 
 
 def get_filter(type_name: str, **options: Any) -> Filter:

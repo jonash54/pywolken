@@ -34,22 +34,19 @@ _LASPY_DIM_MAP = {
 }
 
 
-def _extract_crs(las: laspy.LasData) -> str | None:
-    """Extract CRS from LAS VLRs as WKT string."""
-    for vlr in las.vlrs:
-        # OGC WKT CRS (GeoTIFF or WKT VLR)
-        if vlr.record_id == 2112:
-            try:
-                return vlr.record_data.decode("utf-8").rstrip("\x00")
-            except (UnicodeDecodeError, AttributeError):
-                pass
-    # Try header's CRS if available via laspy
+def _extract_crs(header: laspy.LasHeader) -> str | None:
+    """Extract CRS from LAS header using laspy's built-in parser.
+
+    Returns CRS as an EPSG or WKT string, or None if not found.
+    """
     try:
-        crs_vlrs = [v for v in las.vlrs if v.user_id == "LASF_Projection"]
-        if crs_vlrs:
-            for vlr in crs_vlrs:
-                if vlr.record_id == 2112:
-                    return vlr.record_data.decode("utf-8").rstrip("\x00")
+        crs = header.parse_crs()
+        if crs is not None:
+            # Return as EPSG string if possible, else WKT
+            epsg = crs.to_epsg()
+            if epsg:
+                return f"EPSG:{epsg}"
+            return crs.to_wkt()
     except Exception:
         pass
     return None
@@ -97,9 +94,7 @@ def _laspy_to_pointcloud(
             file_version=f"{hdr.version.major}.{hdr.version.minor}",
             software=hdr.generating_software or "pywolken",
         )
-        # CRS from header's VLRs
-        if hasattr(las, "vlrs"):
-            pc.crs = _extract_crs(las)
+        pc.crs = _extract_crs(hdr)
     else:
         pc.metadata = Metadata(source_format="las")
 
@@ -180,17 +175,12 @@ class LasWriter(Writer):
         )
         header.generating_software = "pywolken"
 
-        # Set CRS via WKT VLR
+        # Set CRS using laspy's built-in CRS writer
         if pc.crs:
             try:
-                wkt_bytes = pc.crs.encode("utf-8")
-                vlr = laspy.VLR(
-                    user_id="LASF_Projection",
-                    record_id=2112,
-                    description="OGC WKT Coordinate System",
-                    record_data=wkt_bytes,
-                )
-                header.vlrs.append(vlr)
+                from pyproj import CRS
+                crs_obj = CRS.from_user_input(pc.crs)
+                header.add_crs(crs_obj)
             except Exception:
                 pass
 

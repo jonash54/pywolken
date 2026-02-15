@@ -79,9 +79,11 @@ def _ensure_registered() -> None:
         return
 
     from pywolken.io.las import LasReader, LasWriter
+    from pywolken.io.gdal import GdalWriter
 
     io_registry.register_reader(LasReader)
     io_registry.register_writer(LasWriter)
+    io_registry.register_writer(GdalWriter)
 
 
 def read(path: str, **options: Any) -> PointCloud:

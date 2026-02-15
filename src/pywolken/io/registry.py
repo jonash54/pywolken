@@ -80,10 +80,16 @@ def _ensure_registered() -> None:
 
     from pywolken.io.las import LasReader, LasWriter
     from pywolken.io.gdal import GdalWriter
+    from pywolken.io.ply import PlyReader, PlyWriter
+    from pywolken.io.csv import CsvReader, CsvWriter
 
     io_registry.register_reader(LasReader)
     io_registry.register_writer(LasWriter)
     io_registry.register_writer(GdalWriter)
+    io_registry.register_reader(PlyReader)
+    io_registry.register_writer(PlyWriter)
+    io_registry.register_reader(CsvReader)
+    io_registry.register_writer(CsvWriter)
 
 
 def read(path: str, **options: Any) -> PointCloud:

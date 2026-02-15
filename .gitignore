@@ -17,4 +17,6 @@ htmlcov/
 *.tiff
 *.las
 *.laz
+tests/
+benchmarks/
 .claude/

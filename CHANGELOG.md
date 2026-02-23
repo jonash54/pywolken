@@ -1,5 +1,11 @@
 # Changelog
 
+## v0.1.1 (2026-02-22)
+
+### Bugfixes
+- **Hillshade:** Fix inverted relief — corrected aspect angle from `arctan2(-dzdy, dzdx)` to `arctan2(dzdy, -dzdx)` so lit/shadowed faces render correctly
+- **Hillshade:** Fix steep slope over-brightening — add normalization denominator `sqrt(1 + slope²)` to the shading formula
+
 ## v0.1.0 (2026-02-15)
 
 Initial release.

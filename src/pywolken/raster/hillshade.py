@@ -66,8 +66,8 @@ def hillshade(
     shade = (
         np.sin(altitude_rad)
         + np.cos(altitude_rad) * slope
-        * np.cos(azimuth_rad - np.arctan2(-dzdy, dzdx))
-    )
+        * np.cos(azimuth_rad - np.arctan2(dzdy, -dzdx))
+    ) / np.sqrt(1.0 + slope ** 2)
 
     # Normalize to 0-255
     shade = np.clip(shade, 0, 1)
